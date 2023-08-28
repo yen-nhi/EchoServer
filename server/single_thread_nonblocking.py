@@ -1,5 +1,5 @@
 from collections import deque
-from functions.basic_echo_server import BasicEchoServer
+from server.basic_echo_server import BasicEchoServer
 
 
 class SocketWithLoop(BasicEchoServer):
@@ -38,7 +38,8 @@ class SocketWithLoop(BasicEchoServer):
             s.close()
 
 
-
+if __name__ == "__main__":
+    SocketWithLoop().socket_run()
 
 
 

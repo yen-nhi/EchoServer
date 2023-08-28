@@ -1,15 +1,15 @@
 import select
 
-from functions.basic_echo_server import BasicEchoServer
+from server.basic_echo_server import BasicEchoServer
 
 
 class SocketWithSelect(BasicEchoServer):
+
     def select_socket(self, s):
         s.setblocking(False)
         socket_list = [s]
         while True:
             read_sockets, _, _ = select.select(socket_list, [], [])
-            print('SELECT')
             for sock in read_sockets:
                 if sock is s:
                     conn, addr = sock.accept()
@@ -26,12 +26,14 @@ class SocketWithSelect(BasicEchoServer):
                         socket_list.remove(sock)
 
 
-
-
     def socket_run(self):
         try:
             s = self.create_socket()
             self.select_socket(s)
         except KeyboardInterrupt:
             s.close()
+
+
+if __name__ == "__main__":
+    SocketWithSelect().socket_run()
 

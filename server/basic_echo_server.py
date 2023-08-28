@@ -3,9 +3,10 @@ from settings import SERVER_HOST, SERVER_PORT
 
 
 class BasicEchoServer:
-    def create_socket(self):
+
+    def create_socket(self, host=SERVER_HOST, port=SERVER_PORT):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((SERVER_HOST, SERVER_PORT))
+        s.bind((host, port))
         s.listen()
         return s
 

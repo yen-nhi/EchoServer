@@ -1,10 +1,10 @@
 import threading
-from functions.basic_echo_server import BasicEchoServer
+from server.basic_echo_server import BasicEchoServer
 
 
 class SocketWithThread(BasicEchoServer):
 
-    def multithread_connection(self, s):
+    def multithread_server(self, s):
         """
         Create new thread to handle new connection => each connection run on a new thread
         :param s:
@@ -34,5 +34,9 @@ class SocketWithThread(BasicEchoServer):
 
     def socket_run(self):
         s = self.create_socket()
-        self.multithread_connection(s)
+        self.multithread_server(s)
 
+
+
+if __name__ == '__main__':
+    SocketWithThread().socket_run()
