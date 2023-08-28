@@ -37,7 +37,6 @@ def test_single_client_connection(addr: Tuple[str, int], data: bin, time_sleep: 
         return client.recv(1024)
 
 
-
 def test_multi_client_connection(addr: Tuple[str, int], data: List[bin], number_of_clients: int = 1):
     responses = []
     for i in range(number_of_clients):
