@@ -47,9 +47,8 @@ class SocketWithLockThread(BasicEchoServer):
                 if metric:
                     threading.Thread(target=self.get_metrics, args=(conn,)).start()
                 else:
-                    self.lock.acquire()
-                    self.no_of_conns += 1
-                    self.lock.release()
+                    with self.lock:
+                        self.no_of_conns += 1
                     threading.Thread(target=self.read_data_from_socket, args=(conn,)).start()
         except KeyboardInterrupt:
             s.close()
@@ -68,16 +67,14 @@ class SocketWithLockThread(BasicEchoServer):
                 conn.sendall(data)
 
     def update_metric(self, size):
-        lock = threading.Lock()
-        lock.acquire()
-        self.no_of_req += 1
-        if size < 10:
-            self.size_ten_reqs += 1
-        elif size >= 10 and size < 100:
-            self.size_hundred_reqs += 1
-        else:
-            self.size_big_reqs += 1
-        lock.release()
+        with self.lock:
+            self.no_of_req += 1
+            if size < 10:
+                self.size_ten_reqs += 1
+            elif size >= 10 and size < 100:
+                self.size_hundred_reqs += 1
+            else:
+                self.size_big_reqs += 1
 
     def get_metrics(self, conn):
         """
@@ -88,15 +85,14 @@ class SocketWithLockThread(BasicEchoServer):
         while not conn._closed:
             data = conn.recv(1024)
             if data.decode('ascii').strip() == 'metric':
-                self.lock.acquire()
-                payload = {
-                    'total_connections': self.no_of_conns,
-                    'total_requests': self.no_of_req,
-                    'number_of_requests_size_less_than_10': self.size_ten_reqs,
-                    'number_of_requests_size_from_10_to_less_than_100': self.size_hundred_reqs,
-                    'number_of_requests_size_from_100': self.size_big_reqs
-                }
-                self.lock.release()
+                with self.lock:
+                    payload = {
+                        'total_connections': self.no_of_conns,
+                        'total_requests': self.no_of_req,
+                        'number_of_requests_size_less_than_10': self.size_ten_reqs,
+                        'number_of_requests_size_from_10_to_less_than_100': self.size_hundred_reqs,
+                        'number_of_requests_size_from_100': self.size_big_reqs
+                    }
                 conn.sendall(json.dumps(payload).encode('ascii'))
             else:
                 conn.sendall(b'Wrong request\n')

@@ -15,14 +15,17 @@ class BasicEchoServer:
         Read line from socket
         :return:
         """
-        while not conn._closed:
-            print(conn)
-            data = conn.recv(1024)
-            if not data:
-                conn.close()
-            else:
-                print(f'data received: {data}')
-                conn.sendall(data)
+        try:
+            while not conn._closed:
+                # print(conn)
+                data = conn.recv(1024)
+                if not data:
+                    conn.close()
+                else:
+                    print(f'data received from {conn.getpeername()}: {data}')
+                    conn.sendall(data)
+        except KeyboardInterrupt:
+            conn.close()
 
     def socket_run(self):
         try:
@@ -32,7 +35,5 @@ class BasicEchoServer:
             self.read_from_socket(conn)
         except KeyboardInterrupt:
             s.close()
-
-
 
 

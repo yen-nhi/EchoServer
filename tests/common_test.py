@@ -46,6 +46,23 @@ def test_multi_client_connection(addr: Tuple[str, int], data: List[bin], number_
         responses.append(response)
     return responses
 
+def test_multi_client_connection_2(addr, data, number_of_clients):
+    connections = [socket.socket(socket.AF_INET, socket.SOCK_STREAM) for i in range(number_of_clients)]
+    results = []
+    for conn in connections:
+        time.sleep(0.01)
+        print('CONNECT')
+        conn.connect(addr)
+    for i, conn in enumerate(connections):
+        conn.sendall(data[i])
+        results.append(conn.recv(1024))
+    for conn in connections:
+        conn.close()
+    return results
+
+
+
+
 
 
 

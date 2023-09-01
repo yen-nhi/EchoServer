@@ -26,6 +26,7 @@ class TestMetricEchoServer(unittest.TestCase):
                 data = 'abc' * pow(10, i)
                 s.sendall(data.encode('ascii'))
                 s.recv(1024)
+        s.close()
 
 
     def test_get_metric(self):
