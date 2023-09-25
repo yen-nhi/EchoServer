@@ -11,26 +11,20 @@ class ThreadPool:
     def __init__(self, pool_size):
         self.pool_size = pool_size
         self.channel = queue.Queue()
+        self.pool = [threading.Thread(target=self.worker) for _ in range(self.pool_size)]
+        for thread in self.pool:
+            thread.start()
 
     def push_task(self, func, args: Tuple):
         self.channel.put(lambda: func(*args))
 
-    def worker(self):
+    def _worker(self):
         while True:
             task = self.channel.get()
             task()
 
-    def run(self):
-        pool = [threading.Thread(target=self.worker) for _ in range(self.pool_size)]
-        for thread in pool:
-            thread.start()
-
 
 class ThreadPoolServer3(BasicEchoServer):
-    def __init__(self, pool_size):
-        self.pool = ThreadPool(pool_size)
-        self.sock = self.create_socket()
-
     def task(self, conn):
         while not conn._closed:
             data = conn.recv(1024)
@@ -39,14 +33,13 @@ class ThreadPoolServer3(BasicEchoServer):
             else:
                 conn.close()
 
-    def run_threadpool(self):
-        try:
-            self.pool.run()
+    def run_threadpool(self, pool_size):
+        pool = ThreadPool(pool_size)
+        with self.create_socket() as s:
             while True:
-                conn, addr = self.sock.accept()
-                self.pool.push_task(self.task, (conn,))
-        except KeyboardInterrupt or Exception:
-            self.sock.close()
+                conn, addr = s.accept()
+                pool.push_task(self.task, (conn,))
+
 
 
 
@@ -77,8 +70,7 @@ class ThreadPoolServer2(BasicEchoServer):
 class ThreadPoolServer1(BasicEchoServer):
 
     def run_threadpool(self):
-        try:
-            s = self.create_socket()
+        with self.create_socket() as s:
             pool = ThreadPool(2)
             with pool:
                 while True:
@@ -86,8 +78,6 @@ class ThreadPoolServer1(BasicEchoServer):
                     print(f'ACCEPTED {addr}')
                     print('Starting task ...')
                     pool.apply_async(self.read_from_socket, (conn,))
-        except KeyboardInterrupt:
-            s.close()
 
 
 if __name__ == '__main__':
